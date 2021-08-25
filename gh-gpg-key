@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e
+
+help() {
+  cat <<EOF
+Usage:
+ - gh gpg-key list
+ - gh gpg-key add [keyid|email]
+
+Manage GPG keys registered with your GitHub account
+
+Dependencies: gpg
+EOF
+}
+
+if ! type -p gpg >/dev/null; then
+  echo "GPG not found on the system" >&2
+  exit 1
+fi
+
+if [ "$1" == "add" ]; then
+  if [ -z "$2" ]; then
+    echo "A key id or identifier must be provided"
+    exit 1
+  fi
+
+  key_output=$(gpg --armor --export "$2")
+
+  if [ "$key_output" == "gpg: WARNING: nothing exported" ]; then
+    echo "The specified key id or identifier could not be exported"
+    exit 1
+  fi
+
+  exec gh api user/gpg_keys -F "armored_public_key=${key_output}"
+
+  exit 0
+elif [ "$1" == "list" ]; then
+  TEMPLATE='
+    {{- range $key := . -}}
+      {{- printf "%s	%s\n" $key.key_id $key.expires_at -}}
+    {{- end -}}
+  '
+
+  exec gh api user/gpg_keys --paginate --template="${TEMPLATE}"
+else
+  help
+  exit 1
+fi
