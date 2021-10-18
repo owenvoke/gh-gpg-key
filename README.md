@@ -1,5 +1,7 @@
 # `gh gpg-key` GitHub CLI extension
 
+> NOTE: This extension is now part of `gh` core and is no longer supported.
+
 This adds functionality to list and add GPG keys to GitHub until [cli/cli#3822](https://github.com/cli/cli/pull/3822) is merged.
 
 ## Install
